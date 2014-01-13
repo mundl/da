@@ -1,4 +1,3 @@
-setwd("F:/da/r/")
 library(knitr)
 #opts_chunk$set(fig.path='figure/redox-')
 library(reshape2)
