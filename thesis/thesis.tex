@@ -1,0 +1,170 @@
+% **************************************************************************************************************
+% A Classic Thesis Style
+% An Homage to The Elements of Typographic Style
+%
+% Copyright (C) 2012 Andr\'e Miede http://www.miede.de
+%
+% If you like the style then I would appreciate a postcard. My address 
+% can be found in the file ClassicThesis.pdf. A collection of the 
+% postcards I received so far is available online at 
+% http://postcards.miede.de
+%
+% License:
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; see the file COPYING.  If not, write to
+% the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+% Boston, MA 02111-1307, USA.
+%
+% **************************************************************************************************************
+% Note:
+%    * You must not use "u etc. in strings/commands that will be spaced out (use \"u or real umlauts instead)
+%    * New enumeration (small caps): \begin{aenumerate} \end{aenumerate}
+%    * For margin notes: \marginpar or \graffito{}
+%    * Do not use bold fonts in this style, it is designed around them
+%    * Use tables as in the examples
+%    * See classicthesis-preamble.sty for useful commands
+% **************************************************************************************************************
+% To Do:
+%		 * [high] Check this out: http://www.golatex.de/koma-script-warnung-in-verbindung-mit-listings-package-t2058.html
+%    * [medium] mathbb in section-titles/chapter-titles => disappears somehow in headlines!!!
+% **************************************************************************************************************
+\documentclass[open=right,titlepage,numbers=noenddot,headinclude,%1headlines,% letterpaper a4paper
+                footinclude=true,cleardoublepage=empty,abstract=false, % <--- obsolete, remove (todo)
+                BCOR=5mm,paper=a4,fontsize=11pt,%11pt,a4paper,%
+               ]{scrreprt}
+                
+\usepackage{polyglossia}
+\setmainlanguage[spelling=new,babelshorthands=true]{german}
+\usepackage{fontspec}
+\usepackage{amsmath} % vor unicode-math laden
+\usepackage{unicode-math}
+\usepackage{siunitx}
+\usepackage{nicefrac}
+\usepackage{chemmacros}
+\usepackage{listings}
+\usepackage{paralist}
+\usepackage{color}
+  \definecolor{light-gray}{gray}{0.92}
+
+\usepackage{fullpage}
+\usepackage{icomma} % use comma as decimal separator in math mode
+
+\def\subsectionautorefname{Unterkapitel}
+
+
+
+\lstdefinestyle{code}{%
+	  language=R,
+	  name=Code,
+	  basicstyle=\footnotesize\fontspec{Ubuntu Mono},
+	  keywordstyle=, %\footnotesize\fontspec{Ubuntu Mono},
+%	  stringstyle=\color{blue},
+	  backgroundcolor=\color{light-gray},
+	  numbers=left,
+	  firstnumber=auto,
+	  numberfirstline=true, 
+	  breaklines=true,
+	  breakatwhitespace=true,
+	  stepnumber=2,
+	  frame=single}%
+
+\usepackage{microtype}
+\usepackage{natbib}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{hyperref}
+                
+% grüne todos für _F_ormatierungen
+\newcommand{\todof}[2][]{\todo[color=green!40, #1]{#2}}
+
+% den Namen der Programmiersprache R in serifenloser Schrift setzen
+\newcommand{\R}{\textsf{R}}
+
+
+%********************************************************************
+% Note: Make all your adjustments in here
+%*******************************************************
+% \input{classicthesis-config}
+
+%********************************************************************
+% Hyphenation
+%*******************************************************
+%\hyphenation{put special hyphenation here}
+
+% ********************************************************************
+% GO!GO!GO! MOVE IT!
+%*******************************************************
+
+
+\begin{document}
+%\setkomafont{disposition}{\fontspec{Ubuntu}}
+
+\listoftodos
+
+\frenchspacing
+\raggedbottom
+\selectlanguage{german} % american ngerman
+%\renewcommand*{\bibname}{new name}
+%\setbibpreamble{}
+\pagestyle{plain}
+
+\tableofcontents
+\listoffigures
+\listoftables
+
+\include{Chapters/01-intro}
+\cleardoublepage
+
+\include{Chapters/02-objectives}
+\cleardoublepage
+
+\include{Chapters/03-fundamentals}
+\cleardoublepage
+
+\include{Chapters/04-mm}
+\cleardoublepage
+
+\include{Chapters/05-results}
+\cleardoublepage
+
+\include{Chapters/06-discussion}
+\cleardoublepage
+
+\include{Chapters/07-summary}
+\cleardoublepage
+
+\include{Chapters/08-outlook}
+\cleardoublepage
+
+
+% ********************************************************************
+% Backmatter
+%*******************************************************
+
+%********************************************************************
+% Other Stuff in the Back
+%*******************************************************
+
+\bibliographystyle{sig}
+\label{app:bibliography} 
+\todof[inline]{BibLaTeX: Punkt nach Auflage einfügen: 2. Auflage}
+\todof[inline]{BibLaTeX: irgendein Strichpunkt stimmt nicht}
+\todof[inline]{BibLaTeX: bei Zitat mit Seitenzahl das \fbox{S.tilde} dazu}
+\bibliography{Bibliography}
+
+%\cleardoublepage\include{FrontBackmatter/Declaration}
+% ********************************************************************
+% Game Over: Restore, Restart, or Quit?
+%*******************************************************
+\end{document}
+% ********************************************************************
+

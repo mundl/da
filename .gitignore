@@ -2,4 +2,15 @@
 .Rhistory
 .RData
 LICENSE
-.r/figure
+*.r/figure
+*.synctex.gz*
+*.lot
+*.lol
+*.bbl
+*.aux
+*.blg
+*.lof
+*.log
+*.out
+*.toc
+*.tdo
