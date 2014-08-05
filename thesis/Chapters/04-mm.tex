@@ -1,0 +1,176 @@
+\chapter{Material und Methoden}\label{ch:mm} 
+Die Berechnungen in der vorliegenden Arbeit wurden zur Gänze mit der freien, statistischen Programmiersprache \R{} \citep{rbase} durchgeführt. 
+
+\section{Datenaufbereitung (Preprocessing)}
+Vor allem multivariate Verfahren wie die Faktoren-- oder die Hauptkomponentenanalyse setzen von den Zufallsvariablen vorraus, dass der Erwartungswert Null und die Varianz Eins beträgt. Betrachtet man z.B. die Konzentration von gelösten Grundwasserinhaltstoffen, so nimmt diese für die Hauptkomponenten (\ch{Na+}, \ch{Mg2+}, \ch{HCO3-}, \ch{O2}, \ldots) häufig Werte \SI{>10}{\milli\gram\per\litre} an \citep{huetter}), währenddessen Spurenstoffe wie \ch{Cu2+}, \ch{Zn2+} oder \ch{Pb2+} in der Regel zwei Größenordnungen darunter liegen (\SI{<0,1}{\milli\gram\per\litre}). Um trotz dieser Größenunterschiede die unterschiedlichen Variablen vergleichen zu können, werde diese --- wie in \autoref{ch:standardize} beschrieben --- standardisiert.
+
+Verfahren wie beispielsweise die lineare Regression setzen eine Normalverteilung der Residuen voraus. Ist diese Annahme verletzt, so hat das zwar keine Auswirkungen auf die geschätzten Regressionskoeffizienten, jedoch auf Konfidenzintervalle und die Ergebnisse von Signifikanztests \citep{albers}. Mithilfe einer geeigneten Transformation (z.B. Box-Cox Transformation) kann eine Approximation der Daten an eine Normalverteilung erzielt werden. Vergleiche \autoref{ch:box-cox}. 
+
+\subsection{Standardisierung}
+\label{ch:standardize}
+Beim Standardisieren (auch z-Transformation genannt) wird von der Zufallsvariable $X$ ihr Erwartungswert $\operatorname{E}(X)$ abgezogen und diese Differenz durch die Standardabweichung $\sqrt{\operatorname{Var}(X)}$ dividiert. Die Transformation erfolgt durch 
+\begin{equation}
+  Z=\frac{X-\operatorname{E}(X)}{\sqrt{\operatorname{Var}(X)}}, 
+\end{equation}
+sodass nun $\operatorname{E}(X)=0$ und $\operatorname{Var}(X)=\sqrt{\operatorname{Var}(X)}=1$ sind. Eine Rücktransformation kann mit 
+\begin{equation*}
+  X=\left(Z+\operatorname{E}(X)\right) \cdot\sqrt{\operatorname{Var}(X)}
+\end{equation*} 
+durchgeführt werden. 
+
+Da in den meisten Fällen der Erwartungswert als auch die Varianz einer Zufallsvariable unbekannt sind, wird nicht eine Transformation der Zufallsvariablen selbst durchgeführt, sondern nur deren Realisationen in der vorliegenden Stichprobe. Erwartungswert und Varianz können stattdessen durch Stichprobenmittelwert und Stichprobenvarianz ersetzt werden.
+
+\subsection{Box-Cox Transformation}
+\label{ch:box-cox}
+Die Box-Cox Transformation ist eine Potenztransformation mit reellen Exponenten. Sie ermöglicht bei geeigneter Wahl des Exponenten $\lambda$ eine Annäherung der transformierten Variable  $y^{(\lambda)}$ an die Normalverteilung  und ist wie folgt definiert: 
+
+\begin{equation*}
+y^{(\lambda)} =
+\begin{cases}
+\dfrac{y^\lambda-1}{\lambda} , &\text{für } \lambda \neq 0, \\[8pt] 
+\log{(y)} , &\text{für } \lambda = 0.
+\end{cases}
+\end{equation*}
+
+\begin{figure}
+ \includegraphics[width=\textwidth]{../r/figure/box-cox_dichte.pdf}
+ \caption[Veränderung der Dichtefunktion durch eine Box-Cox Transformation]{Führt man für die im Zeitraum 2005 bis 2012 an den Grundwassermonitoringstellen beobachteten \ch{O2}-Konzentration (rot) eine Box-Cox  Transformation durch, so nähert sich die Verteilung der transformierten Werte (grün) einer Normalverteilung (blau) an.}
+\end{figure}
+
+\begin{figure}
+ \includegraphics[width=\textwidth]{../r/figure/box-cox_qq.pdf}
+ \caption[QQ--Plot. Annäherung an die Normalverteilung durch Box-Cox Transformation]{Mithilfe eines QQ-Diagramms kann die Ähnlichkeit einer Verteilung zur Standardnormalverteilung (\ang{45}-Gerade, bei gleicher Achsenskalierung) überprüft werden.}
+\end{figure}
+
+Um für alle $\lambda < 0$ eine Änderungen des Vorzeichens von $y^{(\lambda)}$ und die damit einhergehende  Änderung der Elementreihenfolge zu verhindern, wird der Ausdruck $y^\lambda-1$ nochmals durch $\lambda$ dividiert. 
+
+Da eine Funktion der Form $f = \nicefrac{y^\lambda-1}{\lambda}$ an der Stelle $\lambda=0$  aufgrund der Division durch Null eine Singularität (Definitionslücke) aufweist, ist die Box-Cox Transformation abschnittsweise, mit einer Log-Transformation an dieser Stelle, definiert.
+
+Zur Schätzung von $\lambda$ wird in dieser Arbeit auf die Funktion \verb|powerTransform| aus dem R-Paket \verb|car| \citep{car} zurückgegriffen, welches eine Maximum-Likelihood-Schätzung des Koeffizienten durchführt.
+
+Mithilfe statistischer Tests kann getestet werden, ob ein geschätzter Exponent $\lambda$ signifikant von bestimmten, leicht interpretierbaren Werten unterschieden werden kann. Häufig getestete Exponenten sind $\lambda=0$ (Log-Transformation), $\lambda=\nicefrac{1}{3}$ (Transformation mit Wurzelexponenten 3, Kubikwurzel), $\lambda=\nicefrac{1}{2}$ (Transformation durch Ziehen der Quadratwurzel) und $\lambda=1$ (keine Transformation). Aus Gründen der Anschaulichkeit werden selbst Exponenten gerundet, welche sich signifikant von den zuvor Genannten unterscheiden. 
+
+Als Tests eignen ich einerseits der Wald-Test welcher die Nullhypothese $H_0\colon \lambda=\lambda_0$ gegen die Alternativhypothese $H_1\colon \lambda\neq\lambda_0$ testet. Oftmals wird kontrolliert, ob  $\lambda_0$ innerhalb des Konfidenzintervalls $[\lambda_u, \lambda_o]$ mit  
+
+\begin{equation*}
+\lambda_{u,o} = \hat{\lambda} \pm \num{1.96} \cdot \sigma\left(\hat{\lambda}\right),
+\end{equation*}
+
+liegt. Zum anderen können ebenfalls Likelihood-Ratio-Tests angewandt werden, welche gegenüber dem Wald-Test ein besseres Verhalten bei kleinem Stichprobenumfang zeigen. 
+ 
+Für eine eventuell erforderliche Rücktransformation kann folgende Umkehrfunktion hergeleitet werden:
+\begin{equation*}
+y =
+\begin{cases}
+\left(y^{(\lambda)}\lambda+1\right)^{\nicefrac{1}{\lambda}}, &\text{für } \lambda \neq 0, \\[8pt] 
+e^{y^{(\lambda)}} , &\text{für } \lambda = 0.
+\end{cases}
+\end{equation*}
+
+\section{Verfahren zur numerischen Integration von Stromlinien}
+Folgt man in einem (zeitlich invarianten) Geschwindigkeitsfeld stets den Richtungsvektoren der Wasserbewegung, so entspricht die zurückgelegte Bahn einer Stromlinie. Hat man nun Kenntnis über das dreidimensionale Geschwindigkeitsfeld eines Grundwasserkörpers das jedem beliebigen Punkt $\vec{p} = (p_x, p_y, p_z)$ innerhalb des stationären Feldes einen Geschwindigkeitsvektor $\vec{v} = (v_x, v_y, v_z)$ zuordnet, kann für jeden dieser Punkte $\vec{p}$ genau \emph{eine einzige} Stromlinie bestimmt werden die durch $\vec{p}$ geht. Mathematisch betrachtet muss hierfür eine Differentialgleichung erster Ordnung integriert werden, deren Lösung lediglich vom Anfangspunkt $\vec{p}$ der Stromlinie abhängt, weshalb man auch von einem  Anfangswertproblem spricht. 
+
+Wird Wasser aus einem Grundwasserkörper gefördert, welcher seitlich durch Fließgewässer begrenzt ist und sonst keine weiteren Quellen und Senken aufweist, so werden die meisten Stromlinien am Gewässerrand beginnen und im Brunnen enden. Ziel ist es nun diese Stromlinien aus einem gegeben Geschwindigkeitsfeld und einem gewählten Punkt zu berechnen und somit eine Abschätzung der Fließzeit zum Brunnen zu erhalten. 
+
+Meist liegt das Vektorfeld der Grundwasserfließgeschwindigkeiten nicht als stetige Funktion vor sondern ist nur an bestimmten, diskreten Punkten auswertbar, beispielsweise an den Knoten eines Finite-Elemente-Modells. Das hat zur Folge, dass auch das Integral der Stromlinie nicht geschlossenen lösbar ist und man auf Näherungsverfahren der numerischen Integration zurückgreifen muss \cite{papula}.
+
+Das einfachste Verfahren hierfür ist das Eulersche Polygonzugverfahren das verglichen mit z.B. Runge-Kutta Verfahren ein deutlich schlechteres Konsistenzverhalten zeigt. Zur Veranschaulichung soll die einfache Differentialgleichung erster Ordnung
+\begin{equation*}
+  y'= \sin(x)^2 \cdot y
+\end{equation*}
+mit der analytischen Lösung
+\begin{equation*}
+  y = 2 \cdot \exp\left({\frac{x - sin(x) cos(x)}{2}}\right)
+\end{equation*}
+in dem Intervall $x \in [0, 5]$ mit der festen Schrittweite $h=0,5$ mit beiden Methoden gelöst werden Als Anfangswert wird $x_0=0$ gewählt. Wie in Abbildung \ref{fig:runge} zu sehen, weist das Euler-Verfahren bei gleicher Schrittweite deutlich größere lokale Fehler auf als das Runge-Kutta Verfahren. Eine dem Runge-Kutta-Verfahren 4. Ordnung vergleichbare Genauigkeit erhält man für das explizite Euler Verfahren erst bei ca. einem Tausendstel der Schrittweite ($h=5\cdot 10^{-4}$).  Dies macht sich vor allem in Bereichen plötzlicher Richtungsänderung (z.B große Grundwasserspiegelabsenkung in Brunnennähe bzw. Infiltration aus einem Fließgewässer) durch höhere, lokale Diskretisierungsfehler nachteilig bemerkbar. 
+
+In weiterer Folge wird auf beide Verfahren der numerischen Integration von Anfangswertproblemen genauer eingegangen und der deren Implementierung in \R{} vorgestellt. Aufgrund der zuvor aufgezeigten Nachteile der Integration nach Euler, wird diese jedoch nicht angewendet.
+
+\begin{figure}
+ \includegraphics[width=\textwidth]{../r/figure/runge-kutta.pdf}
+ \caption[Vergleich numerischer Intergrationsverfahren für Anfangswertprobleme]{Vergleich numerischer Intergrationsverfahren für Anfangswertprobleme. Man beachte die großen, lokalen Fehler des Euler-Verfahrens selbst bei Halbierung der Schrittweite.}
+ \label{fig:runge}
+\end{figure}
+
+
+\subsection{Integration nach Euler}
+Es sei das Anfangswertproblem 
+\begin{equation*}
+  y'= f(x, y)
+\end{equation*}
+gegeben welches mit der Schrittweite $h>0$ und dem Startwert $y(x_0)=y_0$ gelöst werden soll. Somit ergibt sich für die ersten beiden Schritte
+\begin{align*}
+  y(x_0) &= y_0\\
+  y(x_1) &\approx y_1 = y_0 + h \cdot f(x_0, y_0)
+\end{align*}
+und in allgemeiner Form
+\begin{equation*}
+  y(x_{k+1}) \approx y_{k+1} = y_k + h \cdot f(x_k, y_k) \qquad (k = 1, 2, \ldots, n).
+\end{equation*}
+
+Ausgehend von einem gewählten Anfangspunkt $P_0 = (x_0, y_0)$ geht man $h$ Einheiten in Richtung der Tangentensteigung $f(x_0, y_0)$ und erhält einen Ordinatenwert $y_1$ welcher als Anfangswert für den darauffolgenden Schritt gewählt wird. 
+
+Dieses Verfahren liefert nur eine grobe Näherung der exakten Lösungskurve da zur Schätzung nur die Tangentensteigung im Ausgangspunkt berücksichtigt wird. Ausreichende Genauigkeiten sind nur mit hohem Rechenaufwand durch kleine Schrittweiten $h$ zu erhalten \cite{papula}.
+ 
+In \R{} lässt sich dieses Verfahren vergleichsweise einfach als Einzeiler implementieren, 
+
+\begin{lstlisting}[style=code]
+euler <- function(x, y, h, fun) c(x + h, y + h * fun(x, y))
+\end{lstlisting}
+
+wobei die Funktion die Argumente 
+
+\begin{itemize}
+  \item[\texttt{x}] Vektor, Anfangswert der unabhängigen Variable $x$
+  \item[\texttt{y}] Vektor, Anfangswert der abhängigen Variable $y$
+  \item[\texttt{h}] Vektor, Schrittweite in Richtung $x$
+  \item[\texttt{fun}] Funktion, welche zu integrieren ist und als Argumente $x$ und $y$ akzeptiert
+\end{itemize}
+
+erfordert und als Rückgabewert die Approximation des nächsten Punktes $(x+h, y_{k+1})$ liefert.
+
+
+\subsection{Runge-Kutta Verfahren}
+Explizite Runge-Kutta Verfahren werten die zu integrierende Funktion in $s$ Zwischenstufen der Schrittweite $h$ aus. Es wird eine mittlere Steigung durch Gewichtung der $s$ Zwischenstufen gebildet. Das klassische Runge-Kutta Verfahren besitzt die Ordnung $s=4$ und ist  definiert mit 
+
+\begin{equation*}
+  y_{k+1} = y_k + \frac{1}{6} \cdot (k_1 + 2 k_2 + 2 k_3 + k_4)
+\end{equation*}
+
+mit den vier Zwischenstufen
+
+\begin{align*}
+  k_1 &= h \cdot f(x_k, y_k)\\
+  k_2 &= h \cdot f(x_k + h / 2, y_k + k_1 / 2)\\
+  k_3 &= h \cdot f(x_k + h / 2, y_k + k_2 / 2)\\
+  k_4 &= h \cdot f(x_k + h, y_k + k_3).\\
+\end{align*}
+
+Für einen Schritt sind somit vier Auswertungen der zu integrierenden Funktion notwendig \cite{papula}. 
+
+\begin{lstlisting}[style=code]  
+runge <- function(x, y, h, fun) {
+  k <- numeric(4)
+  k[1] <- h * fun(x, y)
+  k[2] <- h * fun(x + h / 2, y + k[1] / 2)
+  k[3] <- h * fun(x + h / 2, y + k[2] / 2)
+  k[4] <- h * fun(x + h, y + k[3]) 
+  
+  return(c(x + h, y + 1 / 6 * sum(k * c(1, 2, 2, 1))))
+}
+\end{lstlisting}
+
+\section{Clustering}
+\subsection{Partitionierendes Clustering}
+\subsection{Hierachisches Clustering}
+\subsection{Unscharfes Clustering}
+
+\section{Hauptkomponentenanalyse}
+
+\section{Co-Kriging}
+
+\section{Zeitreihenanalyse}
+
+
+
+
